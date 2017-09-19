@@ -23,3 +23,34 @@ where aid in (select aid
              
 -- 2. Get the distinct Product ID's (sorted in desc order) of products ordered through an Agent 
 --		who recieves an order from at least one customer in Beijing --
+select distinct pid
+from products
+order by pid desc
+where ;
+
+(select aid
+from agents
+where aid in (select aid
+              from orders
+              where cid in (select cid
+                            from customers
+                            where city = 'Beijing')
+              )
+ )
+
+select cid
+from customers
+where city = 'Beijing'
+
+
+
+
+
+
+
+
+
+
+
+
+
