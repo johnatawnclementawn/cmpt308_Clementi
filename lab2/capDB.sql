@@ -1,3 +1,11 @@
+-- Author: Alan Labourseur --
+-- Owner: Johnathan Clementi --
+-- Prof: Alan Labouseur --
+-- Date: 09//2017 --
+-- Assignment: DBS Lab 2 --
+-- File name: capDB.sql --
+-- Purpose: See below for details:
+
 ----------------------------------------------------------------------------------------
 -- Postgres create, load, and query script for CAP5.
 --
