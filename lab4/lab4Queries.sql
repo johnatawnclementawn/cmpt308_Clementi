@@ -36,9 +36,16 @@ where aid in (select aid
  			)
 order by pid desc;
 
+-- 3. Obtain the ID and name of customers who did not order thru agent 03. --
 
-
-
+select cid, name
+from customers
+where cid in (select cid
+              from orders
+              where aid in (select aid
+                           from orders
+                           where aid != 'a03')
+             );
 
 
 
