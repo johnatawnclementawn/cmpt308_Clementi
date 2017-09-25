@@ -94,9 +94,9 @@ where discountpct in (select discountpct
 -- 
 -- Check constraints are restrictions within a database that are used to ensure data integrity. They dictate values that can be entered 
 -- into a column or table other than values of 'NOT NULL', 'PRIMARY KEY', and the datatypes.  In other words, check constraints
--- enforce rules so that data within the table is useful, consistent, and does not contain values other than those listen in the constraint. 
--- Check constraints are useful because they limit user input to data that is unique and meaningful.  For example here is an example of a  
--- good check constraint.
+-- enforce rules so that data within the table is useful, consistent, and is unlikely to change - for instance names of days or months. 
+-- Check constraints are useful because they limit user input to data that is unique, meaningful, and unlikely to change.  
+-- For example here is an example of a good check constraint.
 --
 --    fishLog_Species TEXT CHECK(fishLog_Species = 'bluegill'
 --                        OR fishLog_Species = 'pumpkinseed'
