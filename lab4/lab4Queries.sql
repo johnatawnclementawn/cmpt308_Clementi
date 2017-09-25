@@ -3,6 +3,7 @@
 -- Date: 09/22/2017 --
 -- Assignment: DBS Lab 4 --
 -- File name: lab4Queries --
+-- P.S. POSTGRESQL IS FREAKIN' AWESOME! --
 
 -- 1. Cities of Agents booking for customer 006 --
 
@@ -88,3 +89,35 @@ where discountpct in (select discountpct
 
 
 -- End Script.  Completed 16:30, 2017/09/22 by Johnathan Clementi --
+
+-- Answer to Question 8: 
+-- 
+-- Check constraints are restrictions within a database that are used to ensure data integrity. They dictate values that can be entered 
+-- into a column or table other than values of 'NOT NULL', 'PRIMARY KEY', and the datatypes.  In other words, check constraints
+-- enforce rules so that data within the table is useful, consistent, and does not contain values other than those listen in the constraint. 
+-- Check constraints are useful because they limit user input to data that is unique and meaningful.  For example here is an example of a  
+-- good check constraint.
+--
+--    fishLog_Species TEXT CHECK(fishLog_Species = 'bluegill'
+--                        OR fishLog_Species = 'pumpkinseed'
+--                        OR fishLog_Species = 'northernPike'
+--                        OR fishLog_Species = 'walleye'
+--                        OR fishLog_Species = 'rockBass'
+--                        OR fishLog_Species = 'smallMouthBass'
+--                        OR fishLog_Species = 'largeMouthBass')
+--
+-- This constraint is useful for my fisheries research over the summer, especially when entering fish data, because it limits my entries to 
+-- a certain format of the common names of fish.  This check constraint would not be considered not good if I added the following statements:
+--
+--    fishLog_Species TEXT CHECK(fishLog_Species = 'bluegill' OR fishLog_Species = 'BLG'
+--                        OR fishLog_Species = 'pumpkinseed' OR fishLog_Species = 'PKS'
+--                        OR fishLog_Species = 'northernPike' OR fishLog_Species = 'NPK'
+--                        OR fishLog_Species = 'walleye' OR fishLog_Species = 'WLY'
+--                        OR fishLog_Species = 'rockBass' OR fishLog_Species = 'RKB'
+--                        OR fishLog_Species = 'smallMouthBass' OR OR fishLog_Species = 'SMB'
+--                        OR fishLog_Species = 'largeMouthBass' OR fishLog_Species = 'LMB')
+--
+-- This is not a good check constraint because it allows different values for data that means the same thing.  In this case, the three letter 
+-- abbreviation is the code we use in the field datasheets when collecting fish.  However, when entered into the database, we prefer that the 
+-- full species name is included, not the field abbreviation, as it is more meaningful to people outside our lab.  
+--
