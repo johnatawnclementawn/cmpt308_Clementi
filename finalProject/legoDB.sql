@@ -7,7 +7,10 @@
 -- Clear database of tables --
 DROP TABLE IF EXISTS Bricks;
 DROP TABLE IF EXISTS Color;
-DROP TABLE IF EXISTS bSets;
+DROP TABLE IF EXISTS bCategory;
+
+
+--DROP TABLE IF EXISTS bSets;
 
 
 -- Bricks --
@@ -22,11 +25,13 @@ CREATE TABLE Bricks (
 );
 
 -- Color --
-CREATE TABLE Color(
+CREATE TABLE Colors (
     cid			SERIAL PRIMARY KEY,
     colorNum	VARCHAR(20) NOT NULL,
     colorName	TEXT NOT NULL
 );
+
+
 
 
 -- Insert test data into Bricks --
