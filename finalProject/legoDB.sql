@@ -7,160 +7,191 @@
 -- Clear database of tables --
 
 
-DROP TABLE IF EXISTS Bricks;
-DROP TABLE IF EXISTS Color;
-DROP TABLE IF EXISTS bCategory;
-
-
 --DROP TABLE IF EXISTS bSets;
+DROP TABLE IF EXISTS Bricks;
+DROP TABLE IF EXISTS Colors;
+DROP TABLE IF EXISTS bCategories;
+
+
+-- Brick Categories --
+CREATE TABLE bCategories (
+    bcID	CHAR(4) PRIMARY KEY NOT NULL,
+    name	TEXT NOT NULL
+);
+
+
+-- Colors --
+CREATE TABLE Colors (
+    colid		CHAR(3) PRIMARY KEY NOT NULL,
+    num			VARCHAR(3) NOT NULL, -- Lego's Color ID --
+    legoName	TEXT NOT NULL, -- Official Lego color name --
+    comName		TEXT -- Common name of color --
+);
 
 
 -- Bricks --
 CREATE TABLE Bricks (
-    bid			SERIAL PRIMARY KEY NOT NULL,
+    bid			CHAR(4) PRIMARY KEY NOT NULL,
     elementID	VARCHAR(20) NOT NULL, -- ElementID is Lego's unique identifier (based on type of brick and color) --
     designID	VARCHAR(8) NOT NULL, -- designID is Lego's identifier for a type of brick --
 	category	INT NOT NULL REFERENCES bCategory(bcID),
+    color		INT NOT NULL REFERENCES colors(cid),
     name		TEXT,
     priceUSD	NUMERIC(10,2)
 );
 
--- Brick Categories --
-CREATE TABLE bCategories (
-    bcID	SERIAL PRIMARY KEY NOT NULL,
+
+-- Set Theme --
+CREATE TABLE setTheme(
+    stID	CHAR(4) PRIMARY KEY NOT NULL,
     name	TEXT NOT NULL
 );
 
--- Colors --
-CREATE TABLE Colors (
-    cid			SERIAL PRIMARY KEY,
-    num			VARCHAR(3) NOT NULL, -- Lego's Color ID
-    legoName	TEXT NOT NULL, -- Official Lego color name
-    comName		TEXT, -- Common name of color
+S
+-- Designer --
+CREATE TABLE designers(
+    did 			CHAR(4) PRIMARY KEY NOT NULL,
+    fname			TEXT NOT NULL,
+    lname			TEXT NOT NULL,
+    officeAddress	TEXT,
+    officeCity		TEXT,
+    officeCountry	TEXT,
+    favTheme		CHAR(4) REFERENCES setTheme(stID),
+    favBrick		CHAR(4) REFERENCES bricks(bid)
 );
 
 
+-- Sets --
+CREATE TABLE sets(
+    sid			CHAR(4) PRIMARY KEY NOT NULL,
+    name		TEXT,
+    priceUSD	NUMERIC(10,2),
+    designer	INT NOT NULL REFERENCES 
+);
 
+-- Insert test data into brick categories --
+-- Categories based on category listing from https://shop.lego.com/en-US/Pick-a-Brick --
+INSERT INTO bCategories(bcID, name)
+VALUES('bc01','Animals and Creatures'),
+	  ('bc02','Beams'),
+      ('bc03','Botanic'),
+      ('bc04','Bricks'),
+      ('bc05','Bricks w/ Bows and Arches'),
+      ('bc06','Bricks w/ special Bows and Angles'),
+      ('bc07','Bricks, special'),
+      ('bc08','Bricks, special Circles and Angles'),
+      ('bc09','Bricks, Technic 4.85'),
+      ('bc10','Bricks w/ slope'),
+      ('bc11','Connectors'),
+      ('bc12','Crains and Scaffold'),
+      ('bc13','Decoration Elements'),
+      ('bc14','Fences and Ladders'),
+      ('bc15','Figure accessories Up/Low body'),
+      ('bc16','Figure accessories Up/Low part'),
+      ('bc17','Figure parts'),
+      ('bc18','Figure Head Clothing'),
+      ('bc19','Figure Heads and Masks'),
+      ('bc20','Figure Weapons'),
+      ('bc21','Figure Wigs'),
+      ('bc22','Foodstuffs'),
+      ('bc23','Frames, Windows, Walls, Doors'),
+      ('bc24','Functional Elements'),
+      ('bc25','Functional Elements, Gear Wheels and Racks'),
+      ('bc26','Functional Elements, others'),
+      ('bc27','Interior'),
+      ('bc28','Plates'),
+      ('bc29','Plates, special'),
+      ('bc30','Plates, special Circles and Angles'),
+      ('bc31','Rubbers and Strings'),
+      ('bc32','Signs, Flags, and Poles'),
+      ('bc33','Transportation, Aviation'),
+      ('bc34','Transportation, Trains'),
+      ('bc35','Transporation, Vehicles'),
+      ('bc36','Tubes'),
+      ('bc37','Tires and Rims, snap 3.2'),
+      ('bc38','Tires and Rims, Technic 4.85'),
+      ('bc39','Tires and Rims, special'),
+      ('bc40','Wheel Base'),
+      ('bc41','Windscreens and Cockpits');
 
--- Insert test data into Bricks --
+Select * from bCategories;
+
+-- Insert Test Data into Colors --
+-- Colors and color numbers come from http://lego.wikia.com/wiki/Colour_Palette --
+INSERT INTO Colors(colid, num, legoName, comName)
+VALUES('c01',1,'White','White'),
+	  ('c02',5,'Brick Yellow','Tan'),
+      ('c03',18,'Nougat','Flesh'),
+      ('c04',21,'Bright Red','Red'),
+      ('c05',23,'Bright Blue','Blue'),
+      ('c06',24,'Bright Yellow','Yellow'),
+      ('c07',26,'Black','Black'),
+      ('c08',28,'Dark Green','Green'),
+      ('c09',37,'Bright Green','Bright Green'),
+      ('c10',38,'Dark Orange','Dark Orange'),
+      ('c11',102,'Medium Blue','Medium Blue'),
+      ('c12',106,'Bright Orange','Orange'),
+      ('c13',119,'Bright Yellowish-Green','Lime'),
+      ('c14',124,'Bright Reddish Violet','Magenta'),
+      ('c15',135,'Sand Blue','Sand Blue'),
+      ('c16',138,'Sand Yellow','Dark Tan'),
+      ('c17',140,'Earth Blue','Dark Blue'),
+      ('c18',141,'Earth Green','Dark Green'),
+      ('c19',151,'Sand Green','Sand Green'),
+      ('c20',154,'Dark Red','Dark Red'),
+      ('c21',191,'Flame Yellowish Orange','Bright Light Orange'),
+      ('c22',192,'Reddish Brown','Reddish Brown'),
+      ('c23',194,'Medium Stone Grey','Light Grey'),
+      ('c24',199,'Dark Stone Grey','Dark Grey'),
+      ('c25',208,'Light Stone Grey','Very Light Grey'),
+      ('c26',212,'Light Royal Blue','Light Blue'),
+      ('c27',221,'Bright Purple','Bright Pink'),
+      ('c28',222,'Light Purple','Light Pink'),
+      ('c29',226,'Cool Yellow','Blonde'),
+      ('c30',268,'Medium Lilac','Dark Purple'),
+      ('c31',283,'Light Nougat','Light Flesh'),
+      ('c32',308,'Dark Brown','Dark Brown'),
+      ('c33',312,'Medium Nougat','Medium Dark Flesh'),
+      ('c34',321,'Dark Azur',NULL),
+      ('c35',322,'Medium Azur','Azure'),
+      ('c36',323,'Aqua','Unikitty Blue'),
+      ('c37',324,'Medium Lavender',NULL),
+      ('c38',325,'Lavender','Lavender'),
+      ('c39',329,'White Glow','Glow-in-the-Dark'),
+      ('c40',326,'Spring Yellowish Green','Unikitty Green'),
+      ('c41',330,'Olive Green','Olive Green'),
+      ('c42',331,'Medium-Yellowish Green','Medium Lime'),
+      ('c43',40,'Transparent',NULL),
+      ('c44',41,'Transparent Red',NULL),
+      ('c45',42,'Transparent Light Blue',NULL),
+      ('c46',43,'Transparent Blue',NULL),
+      ('c47',44,'Transparent Yellow',NULL),
+      ('c48',47,'Transparent Dark Orange',NULL),
+      ('c49',48,'Transparent Green',NULL),
+      ('c50',49,'Transparent Fluorescent Green',NULL),
+      ('c51',111,'Transparent Brown (Smoke)',NULL),
+      ('c52',113,'Transparent Medium Reddish-Yellow',NULL),
+      ('c53',126,'Transparent Bright Bluish-Violet',NULL),
+      ('c54',143,'Transparent Fluorescent Blue',NULL),
+      ('c55',182,'Transparent Bright Orange',NULL),
+      ('c56',311,'Transparent Bright Green',NULL),
+      ('c57',131,'Silver','Pearl Light Grey'),
+      ('c58',148,'Metallic Dark Grey','Pearl Dark Grey'),
+      ('c59',294,'Phosphorescent Green','Glow-in-Dark Trans Green'),
+      ('c60',297,'Warm Gold','Pearl Gold'),
+      ('c61',309,'Metalized Silver',NULL),
+      ('c62',310,'Metalized Gold',NULL),
+      ('c63',315,'Silver Metallic',NULL),
+      ('c64',316,'Titanium Metallic',NULL);
+      
+Select * from Colors;
+   
+
+ -- Insert test data into Bricks --
 INSERT INTO Bricks(bnum, lenByStud, widByStud, name, priceUSD, bType)
 VALUES(3005, 1, 1, '1x1 Brick', 0.07, 'brick');
 
-
--- Insert test data into brick categories --
-INSERT INTO bCategories(name)
-VALUES('Animals and Creatures'),
-	  ('Beams'),
-      ('Botanic'),
-      ('Bricks'),
-      ('Bricks w/ Bows and Arches'),
-      ('Bricks w/ special Bows and Angles'),
-      ('Bricks, special'),
-      ('Bricks, special Circles and Angles'),
-      ('Bricks, Technic 4.85'),
-      ('Bricks w/ slope'),
-      ('Connectors'),
-      ('Crains and Scaffold'),
-      ('Decoration Elements'),
-      ('Fences and Ladders'),
-      ('Figure accessories Up/Low body'),
-      ('Figure accessories Up/Low part'),
-      ('Figure parts'),
-      ('Figure Head Clothing'),
-      ('Figure Heads and Masks'),
-      ('Figure Weapons'),
-      ('Figure Wigs'),
-      ('Foodstuffs'),
-      ('Frames, Windows, Walls, Doors'),
-      ('Functional Elements'),
-      ('Functional Elements, Gear Wheels and Racks'),
-      ('Functional Elements, others'),
-      ('Interior'),
-      ('Plates'),
-      ('Plates, special'),
-      ('Plates, special Circles and Angles'),
-      ('Rubbers and Strings'),
-      ('Signs, Flags, and Poles'),
-      ('Transportation, Aviation'),
-      ('Transportation, Trains'),
-      ('Transporation, Vehicles'),
-      ('Tubes'),
-      ('Tires and Rims, snap 3.2'),
-      ('Tires and Rims, Technic 4.85'),
-      ('Tires and Rims, special'),
-      ('Wheel Base'),
-      ('Windscreens and Cockpits');
-
-
--- Insert Test Data into Colors --
-INSERT INTO Colors(num, legoName, comName)
-VALUES(1,'White','White'),
-	  (5,'Brick Yellow','Tan'),
-      (18,'Nougat','Flesh'),
-      (21,'Bright Red','Red'),
-      (23,'Bright Blue','Blue'),
-      (24,'Bright Yellow','Yellow'),
-      (26,'Black','Black'),
-      (28,'Dark Green','Green'),
-      (37,'Bright Green','Bright Green'),
-      (38,'Dark Orange','Dark Orange'),
-      (102,'Medium Blue','Medium Blue'),
-      (106,'Bright Orange','Orange'),
-      (119,'Bright Yellowish-Green','Lime'),
-      (124,'Bright Reddish Violet','Magenta'),
-      (135,'Sand Blue','Sand Blue'),
-      (138,'Sand Yellow','Dark Tan'),
-      (140,'Earth Blue','Dark Blue'),
-      (141,'Earth Green','Dark Green'),
-      (151,'Sand Green','Sand Green'),
-      (154,'Dark Red','Dark Red'),
-      (191,'Flame Yellowish Orange','Bright Light Orange'),
-      (192,'Reddish Brown','Reddish Brown'),
-      (194,'Medium Stone Grey','Light Grey'),
-      (199,'Dark Stone Grey','Dark Grey'),
-      (208,'Light Stone Grey','Very Light Grey'),
-      (212,'Light Royal Blue','Light Blue'),
-      (221,'Bright Purple','Bright Pink'),
-      (222,'Light Purple','Light Pink'),
-      (226,'Cool Yellow','Blonde'),
-      (268,'Medium Lilac','Dark Purple'),
-      (283,'Light Nougat','Light Flesh'),
-      (308,'Dark Brown','Dark Brown'),
-      (312,'Medium Nougat','Medium Dark Flesh'),
-      (321,'Dark Azur'),
-      (322,'Medium Azur','Azure'),
-      (323,'Aqua','Unikitty Blue'),
-      (324,'Medium Lavender'),
-      (325,'Lavender','Lavender'),
-      (329,'White Glow','Glow-in-the-Dark'),
-      (326,'Spring Yellowish Green','Unikitty Green'),
-      (330,'Olive Green','Olive Green'),
-      (331,'Medium-Yellowish Green','Medium Lime'),
-      (40,'Transparent'),
-      (41,'Transparent Red'),
-      (42,'Transparent Light Blue'),
-      (43,'Transparent Blue'),
-      (44,'Transparent Yellow'),
-      (47,'Transparent Dark Orange'),
-      (48,'Transparent Green'),
-      (49,'Transparent Fluorescent Green'),
-      (111,'Transparent Brown (Smoke)'),
-      (113,'Transparent Medium Reddish-Yellow'),
-      (126,'Transparent Bright Bluish-Violet'),
-      (143,'Transparent Fluorescent Blue'),
-      (182,'Transparent Bright Orange'),
-      (311,'Transparent Bright Green'),
-      (131,'Silver','Pearl Light Grey'),
-      (148,'Metallic Dark Grey','Pearl Dark Grey'),
-      (294,'Phosphorescent Green','Glow-in-Dark Trans Green'),
-      (297,'Warm Gold','Pearl Gold'),
-      (309,'Metalized Silver'),
-      (310,'Metalized Gold'),
-      (315,'Silver Metallic'),
-      (316,'Titanium Metallic');
-      
-      
-      
+     
       
       
       
