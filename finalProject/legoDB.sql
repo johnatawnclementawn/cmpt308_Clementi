@@ -7,6 +7,7 @@
 
 
 -- Clear database of tables --
+DROP TABLE IF EXISTS brkColor;
 DROP TABLE IF EXISTS designs;
 DROP TABLE IF EXISTS bricksIn;
 DROP TABLE IF EXISTS Designers;
@@ -15,6 +16,14 @@ DROP TABLE IF EXISTS setThemes;
 DROP TABLE IF EXISTS Bricks;
 DROP TABLE IF EXISTS Colors;
 DROP TABLE IF EXISTS bCategories;
+
+
+
+
+------------------------------------
+-- Here begins table declarations --
+------------------------------------
+
 
 
 -- Brick Categories --
@@ -35,13 +44,19 @@ CREATE TABLE Colors (
 
 -- Bricks --
 CREATE TABLE Bricks (
-    bid			CHAR(4) PRIMARY KEY NOT NULL,
-    elementID	VARCHAR(20) NOT NULL, -- ElementID is Lego's unique identifier (based on type of brick and color) --
-    designID	VARCHAR(8) NOT NULL, -- designID is Lego's identifier for a type of brick --
+    bid			VARCHAR(7) PRIMARY KEY NOT NULL,
+    designID	VARCHAR(7) NOT NULL, -- designID is Lego's identifier for a type of brick --
 	category	CHAR(4) NOT NULL REFERENCES bCategories(bcID),
-    color		CHAR(4) NOT NULL REFERENCES colors(colid),
     name		TEXT,
     priceUSD	NUMERIC(10,2)
+);
+
+
+-- brkColor --
+CREATE TABLE brkColor(
+    bid			CHAR(4) NOT NULL REFERENCES bricks(bid),
+    cid			CHAR(4) NOT NULL REFERENCES colors(colid),
+  PRIMARY KEY(bid,cid)
 );
 
 
@@ -68,12 +83,13 @@ CREATE TABLE designers (
 -- Sets --
 CREATE TABLE sets (
     sid			CHAR(4) PRIMARY KEY NOT NULL,
-    setNum		VARCHAR(7) NOT NULL -- Lego's set identifier --
+    setNum		VARCHAR(7) NOT NULL, -- Lego's set identifier --
     theme		CHAR(4) NOT NULL REFERENCES setThemes(stID),
     name		TEXT NOT NULL,
     pieceNum	INT NOT NULL,
     priceUSD	NUMERIC(10,2) NOT NULL
 );
+
 
 -- Designs --
 -- (Many designers can contribute to design many sets) --
@@ -91,6 +107,16 @@ CREATE TABLE bricksIn(
     sid		CHAR(4) NOT NULL REFERENCES sets(sid),
   PRIMARY KEY(bid, sid)
 );
+
+
+
+
+---------------------------
+-- Here begins test data --
+---------------------------
+
+
+
 
 -- Insert test data into brick categories --
 -- Categories based on category listing from https://shop.lego.com/en-US/Pick-a-Brick --
@@ -208,6 +234,79 @@ VALUES('c01',1,'White','White'),
       ('c64',316,'Titanium Metallic',NULL);
       
 Select * from Colors;
+
+
+-- Insert test data into bricks --
+-- Test data comes from https://shop.lego.com/en-US/Pick-a-Brick --
+INSERT INTO Bricks(bid, designID, category, name, priceUSD)
+VALUES('b001','3005','bc04','Brick 1x1',0.07),
+	  ('b002','3004','bc04','Brick 1x2',0.10),
+      ('b003','3622','bc04','Brick 1x3',0.14),
+	  ('b004','3010','bc04','Brick 1x4',0.15),
+      ('b005','3009','bc04','Brick 1x6',0.24),
+	  ('b006','3008','bc04','Brick 1x8',0.27),
+      ('b007','6111','bc04','Brick 1x10',0.32),
+	  ('b008','6112','bc04','Brick 1x12',0.39),
+      ('b009','2465','bc04','Brick 1x16',0.50),
+      ('b010','3245','bc04','Brick 1x2x2',0.17),
+      ('b011','3003','bc04','Brick 2x2',0.14),
+	  ('b012','3002','bc04','Brick 2x3',0.17),
+      ('b013','3001','bc04','Brick 2x4',0.20),
+	  ('b014','44237','bc04','Brick 2x6',0.27),
+      ('b015','93888','bc04','Brick 2x8',0.34),
+	  ('b016','92538','bc04','Brick 2x10',0.56),
+      ('b017','2357','bc04','Brick Corner 1x2x2',0.16),
+	  ('b018','30136','bc04','Palisade Brick 1x2',0.10),
+      ('b019','2877','bc04','Profile Brick 1x2',0.10),
+      ('b020','92950','bc05','Brick 1x6 W/ Inside Bow',0.20),
+      ('b021','30165','bc05','Brick 2x2 W/ Bow and Knobs',0.17),
+	  ('b022','6091','bc05','Brick W/ Arch 1x1x1 1/3',0.11),
+      ('b023','3659','bc05','Brick W/ Bow 1x4',0.14),
+	  ('b024','50950','bc05','Brick W/ Bow 1/3',0.12),
+      ('b025','88292','bc05','Brick W/ Bow 1x3x2',0.17),
+	  ('b026','11153','bc05','Brick W/ Bow 1/4',0.12),
+      ('b027','15068','bc05','Plate W/ Bow 2x2x2/3',0.12),
+	  ('b028','2420','bc28','Flat Tile 1x1',0.06),
+      ('b029','3069','bc28','Flat Tile 1x2',0.07),
+      ('b030','63864','bc28','FLat Tile 1x3',0.10),
+      ('b031','2431','bc28','Flat Tile 1x4',0.12),
+	  ('b032','6636','bc28','Flat Tile 1x6',0.14),
+      ('b033','4162','bc28','Flat Tile 1x8',0.14),
+	  ('b034','3068','bc28','Flat Tile 2x2',0.07),
+      ('b035','87079','bc28','Flat Tile 2x4',0.20),
+	  ('b036','2420','bc28','Corner Plate 1x2x2',0.07),
+      ('b037','3024','bc28','Plate 1x1',0.06),
+	  ('b038','3023','bc28','Plate 1x2',0.07),
+      ('b039','3623','bc28','Plate 1x3',0.07),
+      ('b040','3710','bc28','Plate 1x4',0.10),
+      ('b041','3666','bc28','Plate 1x6',0.14),
+	  ('b042','3460','bc28','Plate 1x8',0.17),
+      ('b043','3832','bc28','Plate 2x10',0.24),
+	  ('b044','2445','bc28','Plate 2x12',0.33),
+      ('b045','4282','bc28','Plate 2x16',0.48),
+	  ('b046','3022','bc28','Plate 2x2',0.10),
+      ('b047','3021','bc28','Plate 2x3',0.14),
+	  ('b048','3020','bc28','Plate 2x4',0.14),
+      ('b049','3795','bc28','Plate 2x6',0.18),
+      ('b050','3034','bc28','Plate 2x8',0.24),
+      ('b051','3030','bc28','Plate 4x10',0.51),
+	  ('b052','3029','bc28','Plate 4x12',0.67),
+      ('b053','3031','bc28','Plate 4x4',0.20),
+	  ('b054','6179','bc28','Plate 4x4 W/ 4 knobs',0.20),
+      ('b055','3032','bc28','Plate 4x6',0.41),
+	  ('b056','3035','bc28','Plate 4x8',0.44),
+      ('b057','3958','bc28','Plate 6x6',0.48),
+	  ('b058','3036','bc28','Plate 6x8',0.64),
+      ('b059','2412','bc28','Radiator Grille 1x2',0.06),
+      ('b060','73200','bc17','Mini Body Lower Part',0.38),
+      ('b061','41879','bc17','Mini Leg',0.27),
+	  ('b062','76382','bc17','Mini Upper Part',0.53),
+      ('b063','3626','bc19','Mini Head',0.07),
+	  ('b064','21023','bc19','Mini Head W/ Aviators',0.16),
+      ('b065','99566','bc19','Mini Head No 891',0.16);
+
+Select * from Bricks;
+
    
 -- Insert Test Data into set themes --
 -- List of set themes comes from https://en.wikipedia.org/wiki/List_of_Lego_themes --
@@ -244,6 +343,7 @@ Select * from setThemes;
 
 
 -- Add sets test data --
+-- Lego Set numbers explained at https://goo.gl/KEssUA --
 INSERT INTO sets(sid, setNum, theme, name, pieceNum, priceUSD)
 VALUES('s001','10179','st24','Millennium Falcon',5195,3899.99),
 	  ('s002','10221','st24','Super Star Destroyer',3152,969.99),
@@ -279,11 +379,7 @@ VALUES('s001','10179','st24','Millennium Falcon',5195,3899.99),
 Select * from sets;
 
 
--- Insert test data into Bricks --
---INSERT INTO Bricks(bnum, lenByStud, widByStud, name, priceUSD, bType)
---VALUES(3005, 1, 1, '1x1 Brick', 0.07, 'brick');
-
-     
+  
       
       
       
