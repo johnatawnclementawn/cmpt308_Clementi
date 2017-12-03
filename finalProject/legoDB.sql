@@ -4,10 +4,14 @@
 -- Assignment: Database Design Project --
 -- File name: legoDB.sql --
 
+
+
 -- Clear database of tables --
-
-
---DROP TABLE IF EXISTS bSets;
+DROP TABLE IF EXISTS designs;
+DROP TABLE IF EXISTS bricksIn;
+DROP TABLE IF EXISTS Designers;
+DROP TABLE IF EXISTS Sets; 
+DROP TABLE IF EXISTS setThemes;
 DROP TABLE IF EXISTS Bricks;
 DROP TABLE IF EXISTS Colors;
 DROP TABLE IF EXISTS bCategories;
@@ -34,39 +38,58 @@ CREATE TABLE Bricks (
     bid			CHAR(4) PRIMARY KEY NOT NULL,
     elementID	VARCHAR(20) NOT NULL, -- ElementID is Lego's unique identifier (based on type of brick and color) --
     designID	VARCHAR(8) NOT NULL, -- designID is Lego's identifier for a type of brick --
-	category	INT NOT NULL REFERENCES bCategory(bcID),
-    color		INT NOT NULL REFERENCES colors(cid),
+	category	CHAR(4) NOT NULL REFERENCES bCategories(bcID),
+    color		CHAR(4) NOT NULL REFERENCES colors(colid),
     name		TEXT,
     priceUSD	NUMERIC(10,2)
 );
 
 
 -- Set Theme --
-CREATE TABLE setTheme(
+CREATE TABLE setThemes (
     stID	CHAR(4) PRIMARY KEY NOT NULL,
     name	TEXT NOT NULL
 );
 
 
--- Designer --
-CREATE TABLE designers(
+-- Designers --
+CREATE TABLE designers (
     did 			CHAR(4) PRIMARY KEY NOT NULL,
     fname			TEXT NOT NULL,
     lname			TEXT NOT NULL,
     officeAddress	TEXT,
     officeCity		TEXT,
     officeCountry	TEXT,
-    favTheme		CHAR(4) REFERENCES setTheme(stID),
+    favTheme		CHAR(4) REFERENCES setThemes(stID),
     favBrick		CHAR(4) REFERENCES bricks(bid)
 );
 
 
 -- Sets --
-CREATE TABLE sets(
+CREATE TABLE sets (
     sid			CHAR(4) PRIMARY KEY NOT NULL,
-    name		TEXT,
-    priceUSD	NUMERIC(10,2),
-    designer	INT NOT NULL REFERENCES 
+    setNum		VARCHAR(7) NOT NULL -- Lego's set identifier --
+    theme		CHAR(4) NOT NULL REFERENCES setThemes(stID),
+    name		TEXT NOT NULL,
+    pieceNum	INT NOT NULL,
+    priceUSD	NUMERIC(10,2) NOT NULL
+);
+
+-- Designs --
+-- (Many designers can contribute to design many sets) --
+CREATE TABLE designs(
+    did		CHAR(4) NOT NULL REFERENCES designers(did),
+    sid		CHAR(4) NOT NULL REFERENCES sets(sid),
+  PRIMARY KEY(did, sid)
+);
+
+
+-- Bricks In --
+-- (Many bricks are in many different sets) --
+CREATE TABLE bricksIn(
+    bid		CHAR(4) NOT NULL REFERENCES bricks(bid),
+    sid		CHAR(4) NOT NULL REFERENCES sets(sid),
+  PRIMARY KEY(bid, sid)
 );
 
 -- Insert test data into brick categories --
@@ -188,16 +211,16 @@ Select * from Colors;
    
 -- Insert Test Data into set themes --
 -- List of set themes comes from https://en.wikipedia.org/wiki/List_of_Lego_themes --
-INSERT INTO setTheme(stID, name)
+INSERT INTO setThemes (stID, name)
 VALUES('st01','Architecture'),
-	  ('st02','The Lego Batman Movie'),
+	  ('st02','The Lego Movie'),
       ('st03','Boost'),
-      ('st04','City: Trains'),
+      ('st04','City'),
       ('st05','City: Octan'),
       ('st06','City: Vehicles'),
       ('st07','Classic'),
       ('st08','Creator'),
-      ('st09','Disney Princess'),
+      ('st09','Disney'),
       ('st10','Duplo'),
       ('st11','Elves'),
       ('st12','Friends'),
@@ -214,12 +237,51 @@ VALUES('st01','Architecture'),
       ('st23','Racing'),
       ('st24','Lego Star Wars'),
       ('st25','Super Heroes'),
-      ('st26','Technic');
+      ('st26','Technic'),
+      ('st27','Power Functions');
       
+Select * from setThemes;
 
- -- Insert test data into Bricks --
-INSERT INTO Bricks(bnum, lenByStud, widByStud, name, priceUSD, bType)
-VALUES(3005, 1, 1, '1x1 Brick', 0.07, 'brick');
+
+-- Add sets test data --
+INSERT INTO sets(sid, setNum, theme, name, pieceNum, priceUSD)
+VALUES('s001','10179','st24','Millennium Falcon',5195,3899.99),
+	  ('s002','10221','st24','Super Star Destroyer',3152,969.99),
+      ('s003','10256','st01','Taj Mahal',5922,4499.99),
+      ('s004','10214','st08','Tower Bridge',4295,239.99),
+      ('s005','10196','st27','Grand Carousal',3263,3897.26),
+      ('s006','75059','st24','Sandcrawler',3296,398.00),
+      ('s007','10181','st01','Eiffel Tower',3428,3399.99),
+      ('s008','10188','st24','Death Star',3803,464.48),
+      ('s009','10143','st24','Death Star 2',3417,2799.99),
+      ('s010','10234','st08','Sydney Opera House',2989,494.49),
+      ('s011','3450','st01','Statue Of Liberty',2882,7997.99),
+      ('s012','76042','st25','Shield Helicarrier',2996,349.99),
+      ('s013','10178','st24','Walking AT-AT',1137,769.99),
+      ('s014','10212','st24','Imperial Shuttle',2503,758.74),
+      ('s015','70807','st02','MetalBeards Duel',412,15.99),
+      ('s016','76003','st25','Battle of Smallvile',418,59.99),
+      ('s017','41052','st09','Princess: Ariels Magical Kiss',250,39.99),
+      ('s018','60043','st04','Police Prisoner Transport',196,29.99),
+      ('s019','70724','st19','NinjaCopter',516,74.99),
+      ('s020','6177','st07','Bricks & More: Builders of Tomorrow',650,34.99),
+      ('s021','71042','st09','Pirates of the Carribean: Silent Mary',2200,199.99),
+      ('s022','71040','st09','Disney Castle',4080,349.99),
+      ('s023','21310','st14','Old Fishing Store',2049,149.99),
+      ('s024','60162','st06','Jungle Air Drop Helicopter',1250,149.99),
+      ('s025','31313','st16','Ev3 Toy Robot Project Set',601,349.95),
+      ('s026','10258','st08','London Bus',1686,139.99),
+      ('s027','79253','st17','Blue Drogon Scene',548,32.99),
+      ('s028','60181','st06','Forest Tractor',174,19.99),
+      ('s029','42009','st26','Mobile Crane MK II',2606,269.00),
+      ('s030','42068','st26','Airport Rescue Vehicle',1098,79.99);
+      
+Select * from sets;
+
+
+-- Insert test data into Bricks --
+--INSERT INTO Bricks(bnum, lenByStud, widByStud, name, priceUSD, bType)
+--VALUES(3005, 1, 1, '1x1 Brick', 0.07, 'brick');
 
      
       
