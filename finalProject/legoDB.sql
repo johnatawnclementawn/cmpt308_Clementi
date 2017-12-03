@@ -47,7 +47,7 @@ CREATE TABLE setTheme(
     name	TEXT NOT NULL
 );
 
-S
+
 -- Designer --
 CREATE TABLE designers(
     did 			CHAR(4) PRIMARY KEY NOT NULL,
@@ -186,6 +186,36 @@ VALUES('c01',1,'White','White'),
       
 Select * from Colors;
    
+-- Insert Test Data into set themes --
+-- List of set themes comes from https://en.wikipedia.org/wiki/List_of_Lego_themes --
+INSERT INTO setTheme(stID, name)
+VALUES('st01','Architecture'),
+	  ('st02','The Lego Batman Movie'),
+      ('st03','Boost'),
+      ('st04','City: Trains'),
+      ('st05','City: Octan'),
+      ('st06','City: Vehicles'),
+      ('st07','Classic'),
+      ('st08','Creator'),
+      ('st09','Disney Princess'),
+      ('st10','Duplo'),
+      ('st11','Elves'),
+      ('st12','Friends'),
+      ('st13','Ghostbusters'),
+      ('st14','Ideas'),
+      ('st15','Juniors'),
+      ('st16','Mindstorms'),
+      ('st17','Minecraft'),
+      ('st18','Modular Buildings'),
+      ('st19','Ninjago'),
+      ('st20','Knights'),
+      ('st21','Pirates of the Carribean'),
+      ('st22','Speed Champions'),
+      ('st23','Racing'),
+      ('st24','Lego Star Wars'),
+      ('st25','Super Heroes'),
+      ('st26','Technic');
+      
 
  -- Insert test data into Bricks --
 INSERT INTO Bricks(bnum, lenByStud, widByStud, name, priceUSD, bType)
