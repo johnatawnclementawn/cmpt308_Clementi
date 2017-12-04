@@ -12,7 +12,7 @@ DROP TABLE IF EXISTS designs;
 DROP TABLE IF EXISTS bricksIn;
 DROP TABLE IF EXISTS brkPurchased;
 DROP TABLE IF EXISTS setPurchased;
-DROP TABLE IF EXISTS Transaction;
+DROP TABLE IF EXISTS Transactions;
 DROP TABLE IF EXISTS Customers;
 DROP TABLE IF EXISTS Designers;
 DROP TABLE IF EXISTS People;
@@ -58,7 +58,7 @@ CREATE TABLE Bricks (
 
 
 -- brkColor --
-CREATE TABLE brkColor(
+CREATE TABLE brkColor (
     bid			CHAR(4) NOT NULL REFERENCES bricks(bid),
     cid			CHAR(4) NOT NULL REFERENCES colors(colid),
   PRIMARY KEY(bid,cid)
@@ -88,13 +88,13 @@ CREATE TABLE People (
     pid			CHAR(4) PRIMARY KEY NOT NULL,
     fname		TEXT NOT NULL,
     lname		TEXT NOT NULL,
-    DOB			DATE
+    DOB			DATE NOT NULL
 );
 
 
 -- Customers --
 CREATE TABLE Customers (
-    pid 			CHAR(4) NOT NULL REFERENCES People(pid),
+    pid 		CHAR(4) NOT NULL REFERENCES People(pid),
     prefStore	TEXT NOT NULL,
   PRIMARY KEY(pid)
 );
@@ -103,17 +103,16 @@ CREATE TABLE Customers (
 -- Designers --
 CREATE TABLE designers (
     pid 			CHAR(4) NOT NULL REFERENCES People(pid),
-    officeAddress	TEXT,
-    officeCity		TEXT,
-    officeCountry	TEXT,
     favTheme		CHAR(4) REFERENCES setThemes(stID),
     favBrick		CHAR(4) REFERENCES bricks(bid),
+    officeCity		TEXT,
+    officeCountry	TEXT,
   PRIMARY KEY(pid)
 );
 
 
--- Transaction --
-CREATE TABLE transaction(
+-- Transactions --
+CREATE TABLE transactions (
     tid				CHAR(4) PRIMARY KEY NOT NULL,
     customer		CHAR(4) NOT NULL REFERENCES customers(pid),
     storeLoc		TEXT NOT NULL
@@ -121,24 +120,24 @@ CREATE TABLE transaction(
 
 
 -- Bricks purchased --
-CREATE TABLE brkPurchased(
+CREATE TABLE brkPurchased (
     bid			CHAR(4) NOT NULL REFERENCES bricks(bid),
-    tid			CHAR(4) NOT NULL REFERENCES transaction(tid),
-    quantity 	INT
+    tid			CHAR(4) NOT NULL REFERENCES transactions(tid),
+    quantity 	INT NOT NULL
 );
 
 
 -- Sets purchased --
-CREATE TABLE setPurchased(
+CREATE TABLE setPurchased (
     sid			CHAR(4) NOT NULL REFERENCES sets(sid),
-    tid			CHAR(4) NOT NULL REFERENCES transaction(tid),
-    quantity 	INT
+    tid			CHAR(4) NOT NULL REFERENCES transactions(tid),
+    quantity 	INT NOT NULL
 );
 
 
 -- Designs --
 -- (Many designers can contribute to design many sets) --
-CREATE TABLE designs(
+CREATE TABLE designs (
     pid		CHAR(4) NOT NULL REFERENCES designers(pid),
     sid		CHAR(4) NOT NULL REFERENCES sets(sid),
   PRIMARY KEY(pid, sid)
@@ -147,11 +146,14 @@ CREATE TABLE designs(
 
 -- Bricks In --
 -- (Many bricks are in many different sets) --
-CREATE TABLE bricksIn(
-    bid		CHAR(4) NOT NULL REFERENCES bricks(bid),
-    sid		CHAR(4) NOT NULL REFERENCES sets(sid),
+CREATE TABLE bricksIn (
+    bid			CHAR(4) NOT NULL REFERENCES bricks(bid),
+    sid			CHAR(4) NOT NULL REFERENCES sets(sid),
+    quantity	INT NOT NULL,
   PRIMARY KEY(bid, sid)
 );
+
+
 
 
 
@@ -161,54 +163,28 @@ CREATE TABLE bricksIn(
 ---------------------------
 
 
-
-
 -- Insert test data into brick categories --
 -- Categories based on category listing from https://shop.lego.com/en-US/Pick-a-Brick --
 INSERT INTO bCategories(bcID, name)
-VALUES('bc01','Animals and Creatures'),
-	  ('bc02','Beams'),
-      ('bc03','Botanic'),
-      ('bc04','Bricks'),
-      ('bc05','Bricks w/ Bows and Arches'),
-      ('bc06','Bricks w/ special Bows and Angles'),
-      ('bc07','Bricks, special'),
-      ('bc08','Bricks, special Circles and Angles'),
-      ('bc09','Bricks, Technic 4.85'),
-      ('bc10','Bricks w/ slope'),
-      ('bc11','Connectors'),
-      ('bc12','Crains and Scaffold'),
-      ('bc13','Decoration Elements'),
-      ('bc14','Fences and Ladders'),
-      ('bc15','Figure accessories Up/Low body'),
-      ('bc16','Figure accessories Up/Low part'),
-      ('bc17','Figure parts'),
-      ('bc18','Figure Head Clothing'),
-      ('bc19','Figure Heads and Masks'),
-      ('bc20','Figure Weapons'),
-      ('bc21','Figure Wigs'),
-      ('bc22','Foodstuffs'),
-      ('bc23','Frames, Windows, Walls, Doors'),
-      ('bc24','Functional Elements'),
-      ('bc25','Functional Elements, Gear Wheels and Racks'),
-      ('bc26','Functional Elements, others'),
-      ('bc27','Interior'),
-      ('bc28','Plates'),
-      ('bc29','Plates, special'),
-      ('bc30','Plates, special Circles and Angles'),
-      ('bc31','Rubbers and Strings'),
-      ('bc32','Signs, Flags, and Poles'),
-      ('bc33','Transportation, Aviation'),
-      ('bc34','Transportation, Trains'),
-      ('bc35','Transporation, Vehicles'),
-      ('bc36','Tubes'),
-      ('bc37','Tires and Rims, snap 3.2'),
-      ('bc38','Tires and Rims, Technic 4.85'),
-      ('bc39','Tires and Rims, special'),
-      ('bc40','Wheel Base'),
-      ('bc41','Windscreens and Cockpits');
+VALUES('bc01','Beams'),
+      ('bc02','Bricks'),
+      ('bc03','Bricks w/ Bows and Arches'),
+      ('bc04','Bricks, special'),
+      ('bc05','Bricks, Technic 4.85'),
+      ('bc06','Connectors'),
+      ('bc07','Decoration Elements'),
+      ('bc08','Figure parts'),
+      ('bc09','Figure Clothing'),
+      ('bc10','Figure Heads and Masks'),
+      ('bc11','Figure Accessories'),
+      ('bc12','Frames, Windows, Walls, Doors'),
+      ('bc13','Functional Elements'),
+      ('bc14','Plates'),
+      ('bc15','Plates, special'),
+      ('bc16','Signs, Flags, and Poles'),
+      ('bc17','Transportation');
 
-Select * from bCategories;
+
 
 -- Insert Test Data into Colors --
 -- Colors and color numbers come from http://lego.wikia.com/wiki/Colour_Palette --
@@ -221,136 +197,90 @@ VALUES('c01',1,'White','White'),
       ('c06',24,'Bright Yellow','Yellow'),
       ('c07',26,'Black','Black'),
       ('c08',28,'Dark Green','Green'),
-      ('c09',37,'Bright Green','Bright Green'),
-      ('c10',38,'Dark Orange','Dark Orange'),
-      ('c11',102,'Medium Blue','Medium Blue'),
-      ('c12',106,'Bright Orange','Orange'),
-      ('c13',119,'Bright Yellowish-Green','Lime'),
-      ('c14',124,'Bright Reddish Violet','Magenta'),
-      ('c15',135,'Sand Blue','Sand Blue'),
-      ('c16',138,'Sand Yellow','Dark Tan'),
-      ('c17',140,'Earth Blue','Dark Blue'),
-      ('c18',141,'Earth Green','Dark Green'),
-      ('c19',151,'Sand Green','Sand Green'),
-      ('c20',154,'Dark Red','Dark Red'),
-      ('c21',191,'Flame Yellowish Orange','Bright Light Orange'),
-      ('c22',192,'Reddish Brown','Reddish Brown'),
-      ('c23',194,'Medium Stone Grey','Light Grey'),
-      ('c24',199,'Dark Stone Grey','Dark Grey'),
-      ('c25',208,'Light Stone Grey','Very Light Grey'),
-      ('c26',212,'Light Royal Blue','Light Blue'),
-      ('c27',221,'Bright Purple','Bright Pink'),
-      ('c28',222,'Light Purple','Light Pink'),
-      ('c29',226,'Cool Yellow','Blonde'),
-      ('c30',268,'Medium Lilac','Dark Purple'),
-      ('c31',283,'Light Nougat','Light Flesh'),
-      ('c32',308,'Dark Brown','Dark Brown'),
-      ('c33',312,'Medium Nougat','Medium Dark Flesh'),
-      ('c34',321,'Dark Azur',NULL),
-      ('c35',322,'Medium Azur','Azure'),
-      ('c36',323,'Aqua','Unikitty Blue'),
-      ('c37',324,'Medium Lavender',NULL),
-      ('c38',325,'Lavender','Lavender'),
-      ('c39',329,'White Glow','Glow-in-the-Dark'),
-      ('c40',326,'Spring Yellowish Green','Unikitty Green'),
-      ('c41',330,'Olive Green','Olive Green'),
-      ('c42',331,'Medium-Yellowish Green','Medium Lime'),
-      ('c43',40,'Transparent',NULL),
-      ('c44',41,'Transparent Red',NULL),
-      ('c45',42,'Transparent Light Blue',NULL),
-      ('c46',43,'Transparent Blue',NULL),
-      ('c47',44,'Transparent Yellow',NULL),
-      ('c48',47,'Transparent Dark Orange',NULL),
-      ('c49',48,'Transparent Green',NULL),
-      ('c50',49,'Transparent Fluorescent Green',NULL),
-      ('c51',111,'Transparent Brown (Smoke)',NULL),
-      ('c52',113,'Transparent Medium Reddish-Yellow',NULL),
-      ('c53',126,'Transparent Bright Bluish-Violet',NULL),
-      ('c54',143,'Transparent Fluorescent Blue',NULL),
-      ('c55',182,'Transparent Bright Orange',NULL),
-      ('c56',311,'Transparent Bright Green',NULL),
-      ('c57',131,'Silver','Pearl Light Grey'),
-      ('c58',148,'Metallic Dark Grey','Pearl Dark Grey'),
-      ('c59',294,'Phosphorescent Green','Glow-in-Dark Trans Green'),
-      ('c60',297,'Warm Gold','Pearl Gold'),
-      ('c61',309,'Metalized Silver',NULL),
-      ('c62',310,'Metalized Gold',NULL),
-      ('c63',315,'Silver Metallic',NULL),
-      ('c64',316,'Titanium Metallic',NULL);
+      ('c09',323,'Aqua','Unikitty Blue'),
+      ('c10',326,'Spring Yellowish Green','Unikitty Green'),
+      ('c11',40,'Transparent',NULL),
+      ('c12',41,'Transparent Red',NULL),
+      ('c13',43,'Transparent Blue',NULL),
+      ('c14',44,'Transparent Yellow',NULL),
+      ('c15',47,'Transparent Dark Orange',NULL),
+      ('c16',48,'Transparent Green',NULL),
+      ('c17',49,'Transparent Fluorescent Green',NULL),
+      ('c18',131,'Silver','Pearl Light Grey'),
+      ('c19',310,'Metalized Gold',NULL);
       
-Select * from Colors;
 
 
 -- Insert test data into bricks --
 -- Test data comes from https://shop.lego.com/en-US/Pick-a-Brick --
 INSERT INTO Bricks(bid, designID, category, name, priceUSD)
-VALUES('b001','3005','bc04','Brick 1x1',0.07),
-	  ('b002','3004','bc04','Brick 1x2',0.10),
-      ('b003','3622','bc04','Brick 1x3',0.14),
-	  ('b004','3010','bc04','Brick 1x4',0.15),
-      ('b005','3009','bc04','Brick 1x6',0.24),
-	  ('b006','3008','bc04','Brick 1x8',0.27),
-      ('b007','6111','bc04','Brick 1x10',0.32),
-	  ('b008','6112','bc04','Brick 1x12',0.39),
-      ('b009','2465','bc04','Brick 1x16',0.50),
-      ('b010','3245','bc04','Brick 1x2x2',0.17),
-      ('b011','3003','bc04','Brick 2x2',0.14),
-	  ('b012','3002','bc04','Brick 2x3',0.17),
-      ('b013','3001','bc04','Brick 2x4',0.20),
-	  ('b014','44237','bc04','Brick 2x6',0.27),
-      ('b015','93888','bc04','Brick 2x8',0.34),
-	  ('b016','92538','bc04','Brick 2x10',0.56),
-      ('b017','2357','bc04','Brick Corner 1x2x2',0.16),
-	  ('b018','30136','bc04','Palisade Brick 1x2',0.10),
-      ('b019','2877','bc04','Profile Brick 1x2',0.10),
-      ('b020','92950','bc05','Brick 1x6 W/ Inside Bow',0.20),
-      ('b021','30165','bc05','Brick 2x2 W/ Bow and Knobs',0.17),
-	  ('b022','6091','bc05','Brick W/ Arch 1x1x1 1/3',0.11),
-      ('b023','3659','bc05','Brick W/ Bow 1x4',0.14),
-	  ('b024','50950','bc05','Brick W/ Bow 1/3',0.12),
-      ('b025','88292','bc05','Brick W/ Bow 1x3x2',0.17),
-	  ('b026','11153','bc05','Brick W/ Bow 1/4',0.12),
-      ('b027','15068','bc05','Plate W/ Bow 2x2x2/3',0.12),
-	  ('b028','2420','bc28','Flat Tile 1x1',0.06),
-      ('b029','3069','bc28','Flat Tile 1x2',0.07),
-      ('b030','63864','bc28','FLat Tile 1x3',0.10),
-      ('b031','2431','bc28','Flat Tile 1x4',0.12),
-	  ('b032','6636','bc28','Flat Tile 1x6',0.14),
-      ('b033','4162','bc28','Flat Tile 1x8',0.14),
-	  ('b034','3068','bc28','Flat Tile 2x2',0.07),
-      ('b035','87079','bc28','Flat Tile 2x4',0.20),
-	  ('b036','2420','bc28','Corner Plate 1x2x2',0.07),
-      ('b037','3024','bc28','Plate 1x1',0.06),
-	  ('b038','3023','bc28','Plate 1x2',0.07),
-      ('b039','3623','bc28','Plate 1x3',0.07),
-      ('b040','3710','bc28','Plate 1x4',0.10),
-      ('b041','3666','bc28','Plate 1x6',0.14),
-	  ('b042','3460','bc28','Plate 1x8',0.17),
-      ('b043','3832','bc28','Plate 2x10',0.24),
-	  ('b044','2445','bc28','Plate 2x12',0.33),
-      ('b045','4282','bc28','Plate 2x16',0.48),
-	  ('b046','3022','bc28','Plate 2x2',0.10),
-      ('b047','3021','bc28','Plate 2x3',0.14),
-	  ('b048','3020','bc28','Plate 2x4',0.14),
-      ('b049','3795','bc28','Plate 2x6',0.18),
-      ('b050','3034','bc28','Plate 2x8',0.24),
-      ('b051','3030','bc28','Plate 4x10',0.51),
-	  ('b052','3029','bc28','Plate 4x12',0.67),
-      ('b053','3031','bc28','Plate 4x4',0.20),
-	  ('b054','6179','bc28','Plate 4x4 W/ 4 knobs',0.20),
-      ('b055','3032','bc28','Plate 4x6',0.41),
-	  ('b056','3035','bc28','Plate 4x8',0.44),
-      ('b057','3958','bc28','Plate 6x6',0.48),
-	  ('b058','3036','bc28','Plate 6x8',0.64),
-      ('b059','2412','bc28','Radiator Grille 1x2',0.06),
-      ('b060','73200','bc17','Mini Body Lower Part',0.38),
-      ('b061','41879','bc17','Mini Leg',0.27),
-	  ('b062','76382','bc17','Mini Upper Part',0.53),
-      ('b063','3626','bc19','Mini Head',0.07),
-	  ('b064','21023','bc19','Mini Head W/ Aviators',0.16),
-      ('b065','99566','bc19','Mini Head No 891',0.16);
+VALUES('b001','3005','bc02','Brick 1x1',0.07),
+	  ('b002','3004','bc02','Brick 1x2',0.10),
+      ('b003','3622','bc02','Brick 1x3',0.14),
+	  ('b004','3010','bc02','Brick 1x4',0.15),
+      ('b005','3009','bc02','Brick 1x6',0.24),
+	  ('b006','3008','bc02','Brick 1x8',0.27),
+      ('b007','6111','bc02','Brick 1x10',0.32),
+	  ('b008','6112','bc02','Brick 1x12',0.39),
+      ('b009','2465','bc02','Brick 1x16',0.50),
+      ('b010','3245','bc02','Brick 1x2x2',0.17),
+      ('b011','3003','bc02','Brick 2x2',0.14),
+	  ('b012','3002','bc02','Brick 2x3',0.17),
+      ('b013','3001','bc02','Brick 2x4',0.20),
+	  ('b014','44237','bc02','Brick 2x6',0.27),
+      ('b015','93888','bc02','Brick 2x8',0.34),
+	  ('b016','92538','bc02','Brick 2x10',0.56),
+      ('b017','2357','bc02','Brick Corner 1x2x2',0.16),
+	  ('b018','30136','bc02','Palisade Brick 1x2',0.10),
+      ('b019','2877','bc02','Profile Brick 1x2',0.10),
+      ('b020','92950','bc03','Brick 1x6 W/ Inside Bow',0.20),
+      ('b021','30165','bc03','Brick 2x2 W/ Bow and Knobs',0.17),
+	  ('b022','6091','bc03','Brick W/ Arch 1x1x1 1/3',0.11),
+      ('b023','3659','bc03','Brick W/ Bow 1x4',0.14),
+	  ('b024','50950','bc03','Brick W/ Bow 1/3',0.12),
+      ('b025','88292','bc03','Brick W/ Bow 1x3x2',0.17),
+	  ('b026','11153','bc03','Brick W/ Bow 1/4',0.12),
+      ('b027','15068','bc03','Plate W/ Bow 2x2x2/3',0.12),
+	  ('b028','2420','bc14','Flat Tile 1x1',0.06),
+      ('b029','3069','bc14','Flat Tile 1x2',0.07),
+      ('b030','63864','bc14','FLat Tile 1x3',0.10),
+      ('b031','2431','bc14','Flat Tile 1x4',0.12),
+	  ('b032','6636','bc14','Flat Tile 1x6',0.14),
+      ('b033','4162','bc14','Flat Tile 1x8',0.14),
+	  ('b034','3068','bc14','Flat Tile 2x2',0.07),
+      ('b035','87079','bc14','Flat Tile 2x4',0.20),
+	  ('b036','2420','bc14','Corner Plate 1x2x2',0.07),
+      ('b037','3024','bc14','Plate 1x1',0.06),
+	  ('b038','3023','bc14','Plate 1x2',0.07),
+      ('b039','3623','bc14','Plate 1x3',0.07),
+      ('b040','3710','bc14','Plate 1x4',0.10),
+      ('b041','3666','bc14','Plate 1x6',0.14),
+	  ('b042','3460','bc14','Plate 1x8',0.17),
+      ('b043','3832','bc14','Plate 2x10',0.24),
+	  ('b044','2445','bc14','Plate 2x12',0.33),
+      ('b045','4282','bc14','Plate 2x16',0.48),
+	  ('b046','3022','bc14','Plate 2x2',0.10),
+      ('b047','3021','bc14','Plate 2x3',0.14),
+	  ('b048','3020','bc14','Plate 2x4',0.14),
+      ('b049','3795','bc14','Plate 2x6',0.18),
+      ('b050','3034','bc14','Plate 2x8',0.24),
+      ('b051','3030','bc14','Plate 4x10',0.51),
+	  ('b052','3029','bc14','Plate 4x12',0.67),
+      ('b053','3031','bc14','Plate 4x4',0.20),
+	  ('b054','6179','bc14','Plate 4x4 W/ 4 knobs',0.20),
+      ('b055','3032','bc14','Plate 4x6',0.41),
+	  ('b056','3035','bc14','Plate 4x8',0.44),
+      ('b057','3958','bc14','Plate 6x6',0.48),
+	  ('b058','3036','bc14','Plate 6x8',0.64),
+      ('b059','2412','bc14','Radiator Grille 1x2',0.06),
+      ('b060','73200','bc08','Mini Body Lower Part',0.38),
+      ('b061','41879','bc08','Mini Leg',0.27),
+	  ('b062','76382','bc08','Mini Upper Part',0.53),
+      ('b063','3626','bc10','Mini Head',0.07),
+	  ('b064','21023','bc10','Mini Head W/ Aviators',0.16),
+      ('b065','99566','bc10','Mini Head No 891',0.16);
 
-Select * from Bricks;
+
 
    
 -- Insert Test Data into set themes --
@@ -384,7 +314,6 @@ VALUES('st01','Architecture'),
       ('st26','Technic'),
       ('st27','Power Functions');
       
-Select * from setThemes;
 
 
 -- Add sets test data --
@@ -421,13 +350,206 @@ VALUES('s001','10179','st24','Millennium Falcon',5195,3899.99),
       ('s029','42009','st26','Mobile Crane MK II',2606,269.00),
       ('s030','42068','st26','Airport Rescue Vehicle',1098,79.99);
       
-Select * from sets;
 
 
-  
+
+-- Test data for people --
+INSERT INTO People(pid,fname,lname,DOB)
+VALUES('p001','Johnathan','Clementi','1996-05-12'),
+	  ('p002','Alan','Labouseur','1970-01-15'),
+      ('p003','Megan','Clementi','1968-11-15'),
+	  ('p004','Paul','Clementi','1966-01-25'),
+      ('p005','Kathryn','Rivera','1998-11-12'),
+	  ('p006','Alex','Antaki','1997-12-16'),
+      ('p007','Alex','Mahlmeister','1997-09-04'),
+	  ('p008','Matthew','Oakley','1998-09-03'),
+      ('p009','Casimer','DeCusatis','1960-08-09'),
+	  ('p010','Pablo','Rivas','1978-06-13'),
+      ('p011','Ole Kirk','Christiansen','1891-04-07'),
+	  ('p012','Niels','Christiansen','1966-04-12'),
+      ('p013','Jorgen Vig','Knudstorp','1968-11-21'),
+	  ('p014','Grant','Dixon','1998-01-25'),
+      ('p015','Isabella','DiAddario','1998-01-12'),
+	  ('p016','Yaz','Mohammed Butt','1997-09-16'),
+      ('p017','Eric','Seltzer','1949-05-09'),
+	  ('p018','Natalia','Dobrenko','1998-09-03'),
+      ('p019','Bradley','Mobek','1996-08-17'),
+	  ('p020','Ryan','Scala','2000-09-21'),
+      ('p021','Brian','Cranston','2001-04-17'),
+	  ('p022','Bob','Odenkirk','1966-04-12'),
+      ('p023','Gus','Fring','1998-11-23'),
+	  ('p024','Walter','White','2002-05-25'),
+      ('p025','Walter Jr.','White','2005-08-12'),
+	  ('p026','Skylar','White','2008-09-26'),
+      ('p027','Matthew','Harris','1999-03-09'),
+	  ('p028','Jenna','Boccabella','1998-02-09'),
+      ('p029','Ariana','Giordano','1999-01-17'),
+	  ('p030','Katherine','Clementi','1998-02-09');
+      
+     
+      
+-- Designers test data --
+INSERT INTO Designers(pid, favTheme, favBrick, officeCity, officeCountry)
+VALUES('p022','st14','b061','Sydney','Australia'),
+	  ('p014','st04','b046','Sydney','Australia'),
+      ('p002','st24','b001','Prague','Czech Republic'),
+	  ('p004','st26','b052','Singapore','Singapore'),
+      ('p027','st27','b027','Shanghai','China'),
+	  ('p018','st17','b036','Moscow','Russia'),
+      ('p013','st10','b038','Philadelphia','United States of America'),
+	  ('p028','st09','b044','New York City','United States of America');
+           
+      
+
+-- Customers test data --
+INSERT INTO Customers(pid, prefStore)
+VALUES('p001','King of Prussia'),
+	  ('p003','San Fransisco'),
+      ('p005','New York City'),
+      ('p006','Shanghai'),
+      ('p008','Dallas'),
+      ('p010','Prague'),
+      ('p017','Sydney'),
+      ('p019','Moscow'),
+      ('p021','King of Prussia'),
+      ('p016','New York City'),
+      ('p007','Singapore'),
+      ('p025','Philadelphia');
+ 
+
+ 
+-- Transaction test data --
+INSERT INTO transactions(tid,customer,storeLoc)
+VALUES('t001','p001','King of Prussia'),
+	  ('t002','p003','San Francisco'),
+      ('t003','p003','New York City'),
+	  ('t004','p005','Shanghai'),
+      ('t005','p006','Shanghai'),
+	  ('t006','p008','Moscow'),
+      ('t007','p017','Singapore'),
+	  ('t008','p019','Philadelphia'),
+      ('t009','p021','King of Prussia'),
+	  ('t010','p007','Singapore'),
+      ('t011','p019','Sydney'),
+	  ('t012','p025','Moscow'),
+      ('t013','p003','San Fransisco'),
+	  ('t014','p021','Prague'),
+      ('t015','p008','New York City'),
+	  ('t016','p005','Sydney'),
+      ('t017','p001','Singapore'),
+	  ('t018','p025','King of Prussia'),
+      ('t019','p003','New York City'),
+	  ('t020','p006','Shanghai');
+            
+     
+
+-- Set Purchased test data --
+INSERT INTO setPurchased(tid, sid, quantity)
+VALUES('t001','s001',1),
+	  ('t002','s030',2),
+	  ('t006','s008',2),
+      ('t007','s017',1),
+	  ('t008','s019',3),
+      ('t009','s021',5),
+	  ('t010','s007',1),
+      ('t011','s011',1),
+	  ('t012','s025',2),
+      ('t013','s003',2),
+	  ('t018','s023',1),
+      ('t019','s003',1),
+	  ('t020','s006',1);
+
+
+
+-- brick Purchased test data --
+INSERT INTO brkPurchased(tid, bid, quantity)
+VALUES('t002','b030',20),
+      ('t003','b013',185),
+	  ('t004','b005',34),
+      ('t005','b006',95),
+	  ('t006','b008',10),
+	  ('t014','b022',101),
+      ('t015','b021',57),
+	  ('t016','b015',80),
+      ('t017','b029',12),
+      ('t019','b003',6),
+	  ('t020','b006',98);
       
       
-      
-		
+-- bricks in sets test data --
+INSERT INTO bricksIn(sid, bid, quantity)
+VALUES('s001','b004',2),
+	  ('s001','b005',234),
+      ('s001','b006',13),
+      ('s002','b045',52),
+      ('s002','b023',65),
+      ('s002','b061',24),
+      ('s003','b053',54),
+	  ('s003','b046',4),
+      ('s003','b003',23),
+      ('s004','b007',67),
+      ('s004','b010',73),
+      ('s004','b022',33),
+      ('s005','b059',73),
+	  ('s005','b003',34),
+      ('s006','b050',76),
+      ('s006','b013',83),
+      ('s007','b016',32),
+      ('s008','b019',345),
+      ('s009','b012',34),
+	  ('s009','b021',53),
+      ('s009','b034',233),
+      ('s010','b035',34),
+      ('s011','b064',38),
+      ('s012','b007',34),
+      ('s012','b006',09),
+      ('s013','b009',67),
+      ('s013','b004',38),
+      ('s014','b036',87),
+      ('s014','b051',23),
+      ('s015','b048',84),
+      ('s016','b032',32),
+      ('s017','b065',74),
+      ('s018','b027',46),
+      ('s019','b029',45),
+      ('s020','b031',23),
+      ('s021','b025',2),
+      ('s022','b037',35),
+      ('s023','b022',76),
+      ('s024','b043',34);
+
+-- designers and their designs --
+INSERT INTO designs(pid, sid)
+VALUES('p001','s001'),
+	  ('p001','s002'),
+      ('p001','s003'),
+      ('p001','s004'),
+      ('p001','s005'),
+      ('p001','s006'),
+      ('p001','s007'),
+      ('p001','s008'),
+      ('p001','s009'),
+      ('p001','s010'),
+      ('p001','s011'),
+      ('p001','s012'),
+      ('p001','s013'),
+      ('p001','s014'),
+      ('p001','s015'),
+      ('p001','s016'),
+      ('p001','s017'),
+      ('p001','s018'),
+      ('p001','s019'),
+      ('p001','s020'),
+      ('p001','s021'),
+      ('p001','s022'),
+      ('p001','s023'),
+      ('p001','s024'),
+      ('p001','s025'),
+      ('p001','s026'),
+      ('p001','s027'),
+      ('p001','s028'),
+      ('p001','s029'),
+      ('p001','s030');
+
         
         
