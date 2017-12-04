@@ -10,7 +10,12 @@
 DROP TABLE IF EXISTS brkColor;
 DROP TABLE IF EXISTS designs;
 DROP TABLE IF EXISTS bricksIn;
+DROP TABLE IF EXISTS brkPurchased;
+DROP TABLE IF EXISTS setPurchased;
+DROP TABLE IF EXISTS Transaction;
+DROP TABLE IF EXISTS Customers;
 DROP TABLE IF EXISTS Designers;
+DROP TABLE IF EXISTS People;
 DROP TABLE IF EXISTS Sets; 
 DROP TABLE IF EXISTS setThemes;
 DROP TABLE IF EXISTS Bricks;
@@ -67,19 +72,6 @@ CREATE TABLE setThemes (
 );
 
 
--- Designers --
-CREATE TABLE designers (
-    did 			CHAR(4) PRIMARY KEY NOT NULL,
-    fname			TEXT NOT NULL,
-    lname			TEXT NOT NULL,
-    officeAddress	TEXT,
-    officeCity		TEXT,
-    officeCountry	TEXT,
-    favTheme		CHAR(4) REFERENCES setThemes(stID),
-    favBrick		CHAR(4) REFERENCES bricks(bid)
-);
-
-
 -- Sets --
 CREATE TABLE sets (
     sid			CHAR(4) PRIMARY KEY NOT NULL,
@@ -91,12 +83,65 @@ CREATE TABLE sets (
 );
 
 
+-- People --
+CREATE TABLE People (
+    pid			CHAR(4) PRIMARY KEY NOT NULL,
+    fname		TEXT NOT NULL,
+    lname		TEXT NOT NULL,
+    DOB			DATE
+);
+
+
+-- Customers --
+CREATE TABLE Customers (
+    pid 			CHAR(4) NOT NULL REFERENCES People(pid),
+    prefStore	TEXT NOT NULL,
+  PRIMARY KEY(pid)
+);
+
+
+-- Designers --
+CREATE TABLE designers (
+    pid 			CHAR(4) NOT NULL REFERENCES People(pid),
+    officeAddress	TEXT,
+    officeCity		TEXT,
+    officeCountry	TEXT,
+    favTheme		CHAR(4) REFERENCES setThemes(stID),
+    favBrick		CHAR(4) REFERENCES bricks(bid),
+  PRIMARY KEY(pid)
+);
+
+
+-- Transaction --
+CREATE TABLE transaction(
+    tid				CHAR(4) PRIMARY KEY NOT NULL,
+    customer		CHAR(4) NOT NULL REFERENCES customers(pid),
+    storeLoc		TEXT NOT NULL
+);
+
+
+-- Bricks purchased --
+CREATE TABLE brkPurchased(
+    bid			CHAR(4) NOT NULL REFERENCES bricks(bid),
+    tid			CHAR(4) NOT NULL REFERENCES transaction(tid),
+    quantity 	INT
+);
+
+
+-- Sets purchased --
+CREATE TABLE setPurchased(
+    sid			CHAR(4) NOT NULL REFERENCES sets(sid),
+    tid			CHAR(4) NOT NULL REFERENCES transaction(tid),
+    quantity 	INT
+);
+
+
 -- Designs --
 -- (Many designers can contribute to design many sets) --
 CREATE TABLE designs(
-    did		CHAR(4) NOT NULL REFERENCES designers(did),
+    pid		CHAR(4) NOT NULL REFERENCES designers(pid),
     sid		CHAR(4) NOT NULL REFERENCES sets(sid),
-  PRIMARY KEY(did, sid)
+  PRIMARY KEY(pid, sid)
 );
 
 
