@@ -23,9 +23,11 @@ DROP TABLE IF EXISTS bCategories;
 
 
 
+
 ------------------------------------
 -- Here begins table declarations --
 ------------------------------------
+
 
 
 -- Brick Categories --
@@ -56,14 +58,14 @@ CREATE TABLE Bricks (
 
 
 -- Set Theme --
-CREATE TABLE setThemes (
+CREATE TABLE SetThemes (
     stID	CHAR(4) PRIMARY KEY NOT NULL,
     name	TEXT NOT NULL
 );
 
 
 -- Sets --
-CREATE TABLE sets (
+CREATE TABLE Sets (
     sid			CHAR(4) PRIMARY KEY NOT NULL,
     setNum		VARCHAR(7) NOT NULL, -- Lego's set identifier --
     theme		CHAR(4) NOT NULL REFERENCES setThemes(stID),
@@ -85,13 +87,13 @@ CREATE TABLE People (
 -- Customers --
 CREATE TABLE Customers (
     pid 		CHAR(4) NOT NULL REFERENCES People(pid),
-    prefStore	TEXT NOT NULL,
+    prefStore	TEXT NOT NULL, -- Customer’s preferred store --
   PRIMARY KEY(pid)
 );
 
 
 -- Designers --
-CREATE TABLE designers (
+CREATE TABLE Designers (
     pid 			CHAR(4) NOT NULL REFERENCES People(pid),
     favTheme		CHAR(4) REFERENCES setThemes(stID),
     favBrick		CHAR(4) REFERENCES bricks(bid),
@@ -105,7 +107,8 @@ CREATE TABLE designers (
 CREATE TABLE transactions (
     tid				CHAR(4) PRIMARY KEY NOT NULL,
     customer		CHAR(4) NOT NULL REFERENCES customers(pid),
-    storeLoc		TEXT NOT NULL
+    storeLoc		TEXT NOT NULL,
+    DOP				DATE NOT NULL -- Date of Purchase --
 );
 
 
@@ -139,9 +142,9 @@ CREATE TABLE designs (
 CREATE TABLE bricksIn (
     bid			  CHAR(4) NOT NULL REFERENCES bricks(bid),
     sid			  CHAR(4) NOT NULL REFERENCES sets(sid),
-    colid     CHAR(4) NOT NULL REFERENCES colors(colid),
-    quantity	INT NOT NULL,
-  PRIMARY KEY(bid, sid)
+    colid         CHAR(4) NOT NULL REFERENCES colors(colid),
+    quantity	  INT NOT NULL,
+  PRIMARY KEY(bid, sid,colid)
 );
 
 
@@ -174,7 +177,7 @@ VALUES('bc01','Beams'),
       ('bc15','Plates, special'),
       ('bc16','Signs, Flags, and Poles'),
       ('bc17','Transportation');
-
+SELECT * FROM bCategories;
 
 
 -- Insert Test Data into Colors --
@@ -199,7 +202,7 @@ VALUES('c01',1,'White','White'),
       ('c17',49,'Transparent Fluorescent Green',NULL),
       ('c18',131,'Silver','Pearl Light Grey'),
       ('c19',310,'Metalized Gold',NULL);
-      
+SELECT * FROM Colors;    
 
 
 -- Insert test data into bricks --
@@ -270,15 +273,15 @@ VALUES('b001','3005','bc02','Brick 1x1',0.07),
     ('b063','3626','bc10','Mini Head',0.07),
     ('b064','21023','bc10','Mini Head W/ Aviators',0.16),
     ('b065','99566','bc10','Mini Head No 891',0.16);
-
+SELECT * FROM Bricks;
 
 
    
 -- Insert Test Data into set themes --
 -- List of set themes comes from https://en.wikipedia.org/wiki/List_of_Lego_themes --
-INSERT INTO setThemes (stID, name)
+INSERT INTO SetThemes (stID, name)
 VALUES('st01','Architecture'),
-	    ('st02','The Lego Movie'),
+	  ('st02','The Lego Movie'),
       ('st03','Boost'),
       ('st04','City'),
       ('st05','City: Octan'),
@@ -304,12 +307,12 @@ VALUES('st01','Architecture'),
       ('st25','Super Heroes'),
       ('st26','Technic'),
       ('st27','Power Functions');
-      
+SELECT * FROM SetThemes;      
 
 
 -- Add sets test data --
 -- Lego Set numbers explained at https://goo.gl/KEssUA --
-INSERT INTO sets(sid, setNum, theme, name, pieceNum, priceUSD)
+INSERT INTO Sets(sid, setNum, theme, name, pieceNum, priceUSD)
 VALUES('s001','10179','st24','Millennium Falcon',5195,3899.99),
       ('s002','10221','st24','Super Star Destroyer',3152,969.99),
       ('s003','10256','st01','Taj Mahal',5922,4499.99),
@@ -340,7 +343,9 @@ VALUES('s001','10179','st24','Millennium Falcon',5195,3899.99),
       ('s028','60181','st06','Forest Tractor',174,19.99),
       ('s029','42009','st26','Mobile Crane MK II',2606,269.00),
       ('s030','42068','st26','Airport Rescue Vehicle',1098,79.99);
-      
+
+SELECT s.sid, s.setNum, st.name AS setTheme, s.name, s.pieceNum, s.priceUSD 
+FROM Sets s INNER JOIN setThemes st on s.theme = st.stID;      
 
 
 
@@ -376,7 +381,7 @@ VALUES('p001','Johnathan','Clementi','1996-05-12'),
       ('p028','Jenna','Boccabella','1998-02-09'),
       ('p029','Ariana','Giordano','1999-01-17'),
       ('p030','Katherine','Clementi','1998-02-09');
-      
+SELECT * FROM People;      
      
       
 -- Designers test data --
@@ -393,7 +398,10 @@ VALUES('p022','st14','b061','Sydney','Australia'),
       ('p024','st12','b026','Dallas','United States of America'),
       ('p026','st07','b044','Toronto','Canada'),
       ('p002','st02','b044','London','England');
-           
+SELECT p.fname, p.lname, st.name as favTheme, b.name as favBrick, d.officeCity, d.officeCountry
+FROM Designers d INNER JOIN People p ON d.pid = p.pid
+				 INNER JOIN setThemes st ON d.favTheme = st.stID
+                 INNER JOIN bricks b ON d.favBrick = b.bid;           
       
 
 -- Customers test data --
@@ -410,32 +418,35 @@ VALUES('p001','King of Prussia'),
       ('p016','New York City'),
       ('p007','Singapore'),
       ('p025','Philadelphia');
- 
+SELECT p.fname, p.lname, prefStore 
+FROM Customers c INNER JOIN People p on c.pid = p.pid; 
 
  
 -- Transaction test data --
-INSERT INTO transactions(tid,customer,storeLoc)
-VALUES('t001','p001','King of Prussia'),
-      ('t002','p003','San Francisco'),
-      ('t003','p003','New York City'),
-      ('t004','p005','Shanghai'),
-      ('t005','p006','Shanghai'),
-      ('t006','p008','Moscow'),
-      ('t007','p017','Singapore'),
-      ('t008','p019','Philadelphia'),
-      ('t009','p021','King of Prussia'),
-      ('t010','p007','Singapore'),
-      ('t011','p019','Sydney'),
-      ('t012','p025','Moscow'),
-      ('t013','p003','San Fransisco'),
-      ('t014','p021','Prague'),
-      ('t015','p008','New York City'),
-      ('t016','p005','Sydney'),
-      ('t017','p001','Singapore'),
-      ('t018','p025','King of Prussia'),
-      ('t019','p003','New York City'),
-      ('t020','p006','Shanghai');
-            
+INSERT INTO transactions(tid,customer,storeLoc, DOP)
+VALUES('t001','p001','King of Prussia','2017-12-01'),
+      ('t002','p003','San Francisco','2017-12-02'),
+      ('t003','p003','New York City','2017-12-03'),
+      ('t004','p005','Shanghai','2017-12-04'),
+      ('t005','p006','Shanghai','2017-12-01'),
+      ('t006','p008','Moscow','2017-12-02'),
+      ('t007','p017','Singapore','2017-12-03'),
+      ('t008','p019','Philadelphia','2017-12-04'),
+      ('t009','p021','King of Prussia','2017-12-01'),
+      ('t010','p007','Singapore','2017-12-02'),
+      ('t011','p019','Sydney','2017-12-03'),
+      ('t012','p025','Moscow','2017-12-04'),
+      ('t013','p003','San Fransisco','2017-12-05'),
+      ('t014','p021','Prague','2017-12-01'),
+      ('t015','p008','New York City','2017-12-02'),
+      ('t016','p005','Sydney','2017-12-03'),
+      ('t017','p001','Singapore','2017-12-06'),
+      ('t018','p025','King of Prussia','2017-11-30'),
+      ('t019','p003','New York City','2017-12-01'),
+      ('t020','p006','Shanghai','2017-12-02');
+SELECT t.tid, p.fname, p.lname, t.storeLoc, t.DOP 
+FROM transactions t INNER JOIN customers c on t.customer = c.pid
+					INNER JOIN people p on c.pid = p.pid;            
      
 
 -- Set Purchased test data --
@@ -453,7 +464,11 @@ VALUES('t001','s001',1),
       ('t018','s023',1),
       ('t019','s003',1),
       ('t020','s006',1);
-
+SELECT sp.tid, s.name AS setName, p.fname, p.lname, t.storeLoc, t.DOP, sp.quantity
+FROM setPurchased sp INNER JOIN sets s on sp.sid = s.sid
+					 INNER JOIN transactions t on sp.tid = t.tid
+					 INNER JOIN customers c on t.customer = c.pid
+					 INNER JOIN people p on c.pid = p.pid;
 
 
 -- brick Purchased test data --
@@ -469,7 +484,12 @@ VALUES('t002','b030',20),
       ('t017','b029',12),
       ('t019','b003',6),
       ('t020','b006',98);
-      
+SELECT bkp.tid, b.name AS brickName, p.fname, p.lname, t.storeLoc, t.DOP, bkp.quantity
+FROM brkPurchased bkp INNER JOIN bricks b on bkp.bid = b.bid
+					 INNER JOIN transactions t on bkp.tid = t.tid
+					 INNER JOIN customers c on t.customer = c.pid
+					 INNER JOIN people p on c.pid = p.pid;
+ 
       
 -- bricks in sets test data --
 INSERT INTO bricksIn(sid, bid, colid, quantity)
@@ -512,6 +532,12 @@ VALUES('s001','b004','c01',2),
       ('s022','b037','c18',35),
       ('s023','b022','c19',76),
       ('s024','b043','c01',34);
+SELECT s.name AS setName, b.name AS brickName, c.legoName AS Color, bi.quantity
+FROM bricksIn bi INNER JOIN sets s ON bi.sid = s.sid
+				 INNER JOIN bricks b ON bi.bid = b.bid
+                 INNER JOIN colors c ON bi.colid = c.colid;
+
+
 
 -- designers and their designs --
 INSERT INTO designs(pid, sid)
@@ -545,7 +571,36 @@ VALUES('p022','s001'),
       ('p013','s028'),
       ('p026','s029'),
       ('p026','s030');
+SELECT p.fname, p.lname, s.name AS setName
+FROM designs ds INNER JOIN sets s ON ds.sid = s.sid
+				INNER JOIN designers d ON ds.pid = d.pid
+				INNER JOIN people p ON d.pid = p.pid;
 
 
 
+
+-------------------------------
+-- Here begins data analysis --
+-------------------------------
+
+CREATE OR REPLACE VIEW custSetsW_OBrks AS 
+	SELECT p.fname, p.lname
+    FROM people p INNER JOIN customers c ON p.pid = c.pid
+                  INNER JOIN transactions t ON c.pid = t.customer
+                  INNER JOIN setPurchased sp ON t.tid = sp.tid
+                  INNER JOIN brkPurchased bkp ON t.tid = bkp.tid
+    WHERE sp.tid != bkp.tid
  
+
+
+SELECT sp.tid, s.name AS setName, p.fname, p.lname, t.storeLoc, t.DOP, sp.quantity
+FROM setPurchased sp INNER JOIN sets s on sp.sid = s.sid
+					 INNER JOIN transactions t on sp.tid = t.tid
+					 INNER JOIN customers c on t.customer = c.pid
+					 INNER JOIN people p on c.pid = p.pid;
+                     
+SELECT bkp.tid, b.name AS brickName, p.fname, p.lname, t.storeLoc, t.DOP, bkp.quantity
+FROM brkPurchased bkp INNER JOIN bricks b on bkp.bid = b.bid
+					 INNER JOIN transactions t on bkp.tid = t.tid
+					 INNER JOIN customers c on t.customer = c.pid
+					 INNER JOIN people p on c.pid = p.pid;
