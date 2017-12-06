@@ -7,8 +7,7 @@
 
 
 -- Clear database of tables --
-DROP VIEW IF EXISTS custSetsW_OBrks;
-DROP VIEW IF EXISTS custBrksW_OSets;
+DROP TRIGGER IF EXISTS checkSet on setPurchased;
 DROP VIEW IF EXISTS mostSellingStores;
 DROP TABLE IF EXISTS designs;
 DROP TABLE IF EXISTS bricksIn;
@@ -23,7 +22,9 @@ DROP TABLE IF EXISTS setThemes;
 DROP TABLE IF EXISTS Bricks;
 DROP TABLE IF EXISTS Colors;
 DROP TABLE IF EXISTS bCategories;
-
+DROP ROLE IF EXISTS lego_admin;
+DROP ROLE IF EXISTS lego_designer;
+DROP ROLE IF EXISTS lego_cust;
 
 
 ------------------------------------
@@ -458,11 +459,11 @@ VALUES('t001','s001',1),
       ('t008','s019',3),
       ('t009','s021',5),
       ('t010','s007',1),
-      ('t011','s011',1),
+      ('t011','s010',1),
       ('t012','s025',2),
-      ('t013','s003',2),
+      ('t013','s002',2),
       ('t018','s023',1),
-      ('t019','s003',1),
+      ('t019','s004',1),
       ('t020','s006',1);
 SELECT sp.tid, s.name AS setName, p.fname, p.lname, t.storeLoc, t.DOP, sp.quantity
 FROM setPurchased sp INNER JOIN sets s on sp.sid = s.sid
@@ -614,10 +615,9 @@ WHERE c.pid IN (Select c1.pid
                    )
 ORDER BY p.fname ASC;
 
-----------
--- VIEWS--
-----------
-
+-----------
+-- VIEWS --
+-----------
 
 
 -- This view selects the most selling stores --
@@ -636,18 +636,39 @@ SELECT * FROM mostSellingStores;
 -- STORED PROCEDURES --
 -----------------------
 
--- This stored procedure will calculate the cost of a transaction --
-CREATE OR REPLACE FUNCTION transCalc(TEXT, REFCURSOR) RETURNS refcursor AS
+-- This stored procedure will calculate the cost of a transaction for bricks --
+CREATE OR REPLACE FUNCTION transbrkCalc(TEXT, REFCURSOR) RETURNS refcursor AS
 $$
 	Declare
             transNum TEXT := $1;
             resultSet REFCURSOR := $2;
 BEGIN
 	OPEN resultSet FOR
-    	SELECT t.tid, ((b.priceUSD * bkp.quantity) + (s.priceUSD * sp.quantity)) AS totalCostUSD
+    	SELECT t.tid, (b.priceUSD * bkp.quantity) AS totalCostUSD
         FROM transactions t INNER JOIN brkPurchased bkp ON t.tid = bkp.tid
                             INNER JOIN bricks b ON bkp.bid = b.bid
-                            INNER JOIN setPurchased sp ON t.tid = sp.tid
+        WHERE t.tid LIKE transNum;
+        RETURN resultSet;
+        
+END;
+$$
+LANGUAGE plpgsql;
+         
+select transBrkCalc('t0%%', 'ref');
+FETCH ALL FROM ref;
+
+
+
+-- This stored procedure will calculate the cost of a transaction for bricks --
+CREATE OR REPLACE FUNCTION transSetCalc(TEXT, REFCURSOR) RETURNS refcursor AS
+$$
+	Declare
+            transNum TEXT := $1;
+            resultSet REFCURSOR := $2;
+BEGIN
+	OPEN resultSet FOR
+    	SELECT t.tid, (s.priceUSD * sp.quantity) AS totalCostUSD
+        FROM transactions t INNER JOIN setPurchased sp ON t.tid = sp.tid
                             INNER JOIN sets s ON sp.sid = s.sid
         WHERE t.tid LIKE transNum;
         RETURN resultSet;
@@ -656,9 +677,69 @@ END;
 $$
 LANGUAGE plpgsql;
          
+select transSetCalc('t0%%', 'ref1');
+FETCH ALL FROM ref1;
 
-select transCalc('t0%%', 'ref');
-FETCH ALL FROM ref;
 
 
+
+--------------
+-- Triggers --
+--------------
+
+-- checkSet trigger --
+-- This trigger determines if a customer is attempting to buy an out of production set (i.e. Statue of Liberty or Taj Mahal) --
+-- If a customer trys to buy these two sets, they will instead buy a SHIELD Helicarrier at the same quantity as their original purchase --
+CREATE OR REPLACE FUNCTION checkSet()
+RETURNS TRIGGER AS
+$$
+BEGIN
+	IF (SELECT sp.sid FROM setPurchased sp WHERE sp.sid = 's003') = NEW.sid
+    THEN
+    	DELETE from setPurchased sp where sp.sid = NEW.sid;
+        INSERT INTO setPurchased(tid, sid, quantity) VALUES (NEW.tid, 's012', NEW.Quantity);
+    END IF;
+    RETURN NEW;
+END;
+$$
+language plpgsql;
+
+CREATE TRIGGER checkSet
+AFTER INSERT ON setPurchased
+FOR EACH ROW
+EXECUTE PROCEDURE checkSet();
+
+
+-- Testing checkSet trigger --
+INSERT INTO transactions(tid, customer, storeLOC, DOP) VALUES ('t021','p008','Beijing','2017-12-06');
+INSERT INTO setPurchased(tid, sid, quantity) VALUES ('t021', 's003', 2);
+
+SELECT * from setPurchased sp where sp.sid = 's003';
+SELECT * from setPurchased sp where sp.sid = 's012';
+
+----------------------------
+-- Security: Grant/Revoke --
+----------------------------
+
+-- LegoDB administrator role --
+CREATE ROLE lego_admin;
+GRANT ALL ON ALL TABLES 
+IN SCHEMA PUBLIC
+TO lego_admin;
+
+
+-- Lego designer role --
+CREATE ROLE lego_designer;
+GRANT ALL ON designs, setThemes, sets, bricksIn, bricks, bCategories, colors 
+TO lego_designer;
+GRANT SELECT ON designers
+TO lego_designer;
+
+
+-- Lego customer role --
+CREATE ROLE lego_cust;
+GRANT SELECT, INSERT ON transactions, brkPurchased, setPurchased 
+TO lego_cust;
+GRANT SELECT ON bricks, sets, colors, bCategories, setThemes
+TO lego_cust;
 
