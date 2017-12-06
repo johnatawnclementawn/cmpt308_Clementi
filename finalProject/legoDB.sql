@@ -7,6 +7,9 @@
 
 
 -- Clear database of tables --
+DROP VIEW IF EXISTS custSetsW_OBrks;
+DROP VIEW IF EXISTS custBrksW_OSets;
+DROP VIEW IF EXISTS mostSellingStores;
 DROP TABLE IF EXISTS designs;
 DROP TABLE IF EXISTS bricksIn;
 DROP TABLE IF EXISTS brkPurchased;
@@ -23,12 +26,9 @@ DROP TABLE IF EXISTS bCategories;
 
 
 
-
 ------------------------------------
 -- Here begins table declarations --
 ------------------------------------
-
-
 
 -- Brick Categories --
 CREATE TABLE bCategories (
@@ -583,24 +583,82 @@ FROM designs ds INNER JOIN sets s ON ds.sid = s.sid
 -- Here begins data analysis --
 -------------------------------
 
-CREATE OR REPLACE VIEW custSetsW_OBrks AS 
-	SELECT p.fname, p.lname
-    FROM people p INNER JOIN customers c ON p.pid = c.pid
-                  INNER JOIN transactions t ON c.pid = t.customer
-                  INNER JOIN setPurchased sp ON t.tid = sp.tid
-                  INNER JOIN brkPurchased bkp ON t.tid = bkp.tid
-    WHERE sp.tid != bkp.tid
- 
+
+-------------
+-- REPORTS --
+-------------
+
+-- This query will select customers that have bought set(s) but have not bought brick(s) --
+SELECT DISTINCT p.pid, p.fname, p.lname
+FROM people p INNER JOIN customers c ON p.pid = c.pid
+WHERE c.pid IN (Select c1.pid
+                FROM setPurchased sp INNER JOIN transactions t1 ON sp.tid = t1.tid
+                    				 INNER JOIN customers c1 ON t1.customer = c1.pid
+                WHERE c1.pid NOT IN (Select c2.pid
+                                     FROM brkPurchased bkp INNER JOIN transactions t2 ON bkp.tid = t2.tid
+                                        				   INNER JOIN customers c2 ON t2.customer = c2.pid)
+                   )
+ORDER BY p.fname ASC;
 
 
-SELECT sp.tid, s.name AS setName, p.fname, p.lname, t.storeLoc, t.DOP, sp.quantity
-FROM setPurchased sp INNER JOIN sets s on sp.sid = s.sid
-					 INNER JOIN transactions t on sp.tid = t.tid
-					 INNER JOIN customers c on t.customer = c.pid
-					 INNER JOIN people p on c.pid = p.pid;
-                     
-SELECT bkp.tid, b.name AS brickName, p.fname, p.lname, t.storeLoc, t.DOP, bkp.quantity
-FROM brkPurchased bkp INNER JOIN bricks b on bkp.bid = b.bid
-					 INNER JOIN transactions t on bkp.tid = t.tid
-					 INNER JOIN customers c on t.customer = c.pid
-					 INNER JOIN people p on c.pid = p.pid;
+
+-- This query will select customers that have bought brick(s) but have not bought set(s) --
+SELECT DISTINCT p.pid, p.fname, p.lname
+FROM people p INNER JOIN customers c ON p.pid = c.pid
+WHERE c.pid IN (Select c1.pid
+                FROM brkPurchased bkp INNER JOIN transactions t1 ON bkp.tid = t1.tid
+                    				  INNER JOIN customers c1 ON t1.customer = c1.pid
+                WHERE c1.pid NOT IN (Select c2.pid
+                                     FROM setPurchased sp INNER JOIN transactions t2 ON sp.tid = t2.tid
+                                        				  INNER JOIN customers c2 ON t2.customer = c2.pid)
+                   )
+ORDER BY p.fname ASC;
+
+----------
+-- VIEWS--
+----------
+
+
+
+-- This view selects the most selling stores --
+CREATE OR REPLACE VIEW mostSellingStores AS
+	SELECT t.storeloc, COUNT(t.tid)
+    FROM transactions t
+    GROUP BY t.storeloc
+    HAVING (COUNT(t.tid) >= 0)
+    ORDER BY COUNT(t.tid) DESC;
+    
+SELECT * FROM mostSellingStores;   
+
+
+
+-----------------------
+-- STORED PROCEDURES --
+-----------------------
+
+-- This stored procedure will calculate the cost of a transaction --
+CREATE OR REPLACE FUNCTION transCalc(TEXT, REFCURSOR) RETURNS refcursor AS
+$$
+	Declare
+            transNum TEXT := $1;
+            resultSet REFCURSOR := $2;
+BEGIN
+	OPEN resultSet FOR
+    	SELECT t.tid, ((b.priceUSD * bkp.quantity) + (s.priceUSD * sp.quantity)) AS totalCostUSD
+        FROM transactions t INNER JOIN brkPurchased bkp ON t.tid = bkp.tid
+                            INNER JOIN bricks b ON bkp.bid = b.bid
+                            INNER JOIN setPurchased sp ON t.tid = sp.tid
+                            INNER JOIN sets s ON sp.sid = s.sid
+        WHERE t.tid LIKE transNum;
+        RETURN resultSet;
+        
+END;
+$$
+LANGUAGE plpgsql;
+         
+
+select transCalc('t0%%', 'ref');
+FETCH ALL FROM ref;
+
+
+
